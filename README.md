@@ -1,22 +1,22 @@
-### Auth & JWT
+### Payments (Manual UPI)
 
-This project now includes JWT-based authentication (Register / Login) with protected endpoints.
+This branch implements manual UPI payment proof upload, admin verification, and pay-first join flow.
+
+DB migrations:
+- Run the SQL in backend/migrations/20260813_payments.sql to add entry_fee, max_players, payments table and participant status.
 
 Backend endpoints:
-- POST /api/auth/register  { name, email, password } -> returns { user, token }
-- POST /api/auth/login     { email, password } -> returns { user, token }
-- GET  /api/auth/me        (Authorization: Bearer <token>) -> returns { user }
-
-Protected endpoints example:
-- POST /api/tournaments/:id/join (Authorization: Bearer <token>)
+- POST /api/payments (auth, multipart/form-data): upload proof file (field name 'proof'), tournament_id, amount, method, txn_id.
+- GET /api/payments?status=pending&tournament_id=... (auth): admin can list pending payments; non-admin users will see only their payments.
+- POST /api/payments/:id/verify (auth admin): { action: 'verify' | 'reject' } — verify payment and auto-register participant if verified.
 
 Frontend:
-- Added AuthProvider (frontend/src/auth/AuthProvider.js) which stores token in localStorage under key `vv_token`.
-- Login and Register pages at frontend/src/pages/Login.js and Register.js
-- Axios instance at frontend/src/utils/api.js attaches Authorization header when token present.
+- Tournament page shows Entry Fee, upload proof form (JPG/PNG/PDF, max 5MB) and disables Join button until payment verified.
+- Admin page: /admin/payments to review pending proofs and approve/reject.
 
-How to test locally:
-1) Start docker-compose (see README)
-2) Register a user via POST /api/auth/register
-3) Use returned token in Authorization header for protected calls (or use frontend login/register UI)
+Storage:
+- Proof files are stored on the server under /uploads and the path is saved in payments.proof_path. uploads/ is gitignored.
+
+Email:
+- Email notifications to admin and user are sent if SMTP_* env vars are configured. Otherwise emails are logged to console.
 
