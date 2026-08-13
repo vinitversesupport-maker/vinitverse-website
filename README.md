@@ -1,26 +1,22 @@
-# Vinitverse Website — Scaffold
+### Auth & JWT
 
-This branch contains a starter scaffold for Vinitverse esports project.
+This project now includes JWT-based authentication (Register / Login) with protected endpoints.
 
-Included:
-- docker-compose.yml (Postgres + backend + frontend)
-- backend/ (Express API, routes, DB migrations)
-- frontend/ (React starter with Chat widget & Bracket stub)
-- plugins/vinitvers-local-chat/ (WordPress local chatbot plugin)
-- wp-theme/ (minimal starter theme)
-- .env.example
+Backend endpoints:
+- POST /api/auth/register  { name, email, password } -> returns { user, token }
+- POST /api/auth/login     { email, password } -> returns { user, token }
+- GET  /api/auth/me        (Authorization: Bearer <token>) -> returns { user }
 
-Seed data: tournaments inserted for BR and CS with prices in ₹.
+Protected endpoints example:
+- POST /api/tournaments/:id/join (Authorization: Bearer <token>)
 
-Quick start (local with Docker):
-1) Copy .env.example to .env and edit if needed.
-2) Run: docker-compose up --build
-3) After DB is ready, run migrations inside backend container:
-   docker-compose exec backend bash
-   node -e "require('./src/db')" # then use psql or run psql client
-   # simpler: use psql client to run backend/migrations/init.sql against the Postgres container
+Frontend:
+- Added AuthProvider (frontend/src/auth/AuthProvider.js) which stores token in localStorage under key `vv_token`.
+- Login and Register pages at frontend/src/pages/Login.js and Register.js
+- Axios instance at frontend/src/utils/api.js attaches Authorization header when token present.
 
-Notes:
-- Payment integration is a placeholder. Add Razorpay later.
-- WordPress theme and plugin are provided as code — upload to wp-content/themes and wp-content/plugins respectively if you use WordPress hosting.
+How to test locally:
+1) Start docker-compose (see README)
+2) Register a user via POST /api/auth/register
+3) Use returned token in Authorization header for protected calls (or use frontend login/register UI)
 
