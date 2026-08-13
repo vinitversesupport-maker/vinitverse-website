@@ -1,26 +1,22 @@
-# Vinitverse Website — Scaffold
+### Payments (Manual UPI)
 
-This branch contains a starter scaffold for Vinitverse esports project.
+This branch implements manual UPI payment proof upload, admin verification, and pay-first join flow.
 
-Included:
-- docker-compose.yml (Postgres + backend + frontend)
-- backend/ (Express API, routes, DB migrations)
-- frontend/ (React starter with Chat widget & Bracket stub)
-- plugins/vinitvers-local-chat/ (WordPress local chatbot plugin)
-- wp-theme/ (minimal starter theme)
-- .env.example
+DB migrations:
+- Run the SQL in backend/migrations/20260813_payments.sql to add entry_fee, max_players, payments table and participant status.
 
-Seed data: tournaments inserted for BR and CS with prices in ₹.
+Backend endpoints:
+- POST /api/payments (auth, multipart/form-data): upload proof file (field name 'proof'), tournament_id, amount, method, txn_id.
+- GET /api/payments?status=pending&tournament_id=... (auth): admin can list pending payments; non-admin users will see only their payments.
+- POST /api/payments/:id/verify (auth admin): { action: 'verify' | 'reject' } — verify payment and auto-register participant if verified.
 
-Quick start (local with Docker):
-1) Copy .env.example to .env and edit if needed.
-2) Run: docker-compose up --build
-3) After DB is ready, run migrations inside backend container:
-   docker-compose exec backend bash
-   node -e "require('./src/db')" # then use psql or run psql client
-   # simpler: use psql client to run backend/migrations/init.sql against the Postgres container
+Frontend:
+- Tournament page shows Entry Fee, upload proof form (JPG/PNG/PDF, max 5MB) and disables Join button until payment verified.
+- Admin page: /admin/payments to review pending proofs and approve/reject.
 
-Notes:
-- Payment integration is a placeholder. Add Razorpay later.
-- WordPress theme and plugin are provided as code — upload to wp-content/themes and wp-content/plugins respectively if you use WordPress hosting.
+Storage:
+- Proof files are stored on the server under /uploads and the path is saved in payments.proof_path. uploads/ is gitignored.
+
+Email:
+- Email notifications to admin and user are sent if SMTP_* env vars are configured. Otherwise emails are logged to console.
 
